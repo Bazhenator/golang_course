@@ -2,7 +2,7 @@ package myCalc
 
 import "fmt"
 
-func Calculator(op1 int, op2 int, operator string) (int, error) {
+func Calculator(op1, op2 int, operator string) (int, error) {
 	switch operator {
 	case "+":
 		return op1 + op2, nil
@@ -12,7 +12,7 @@ func Calculator(op1 int, op2 int, operator string) (int, error) {
 		return op1 * op2, nil
 	case "/":
 		if op2 == 0 {
-			return -1, fmt.Errorf("division by zero was occured")
+			return -1, fmt.Errorf("деление на ноль невозможно")
 		}
 		return op1 / op2, nil
 	}

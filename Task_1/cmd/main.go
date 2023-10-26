@@ -1,9 +1,9 @@
 package main
 
 import (
-	myCalc "GO/Task_1/pkg/myCalc"
 	"fmt"
 	"log"
+	"task_1/Task_1/pkg/myCalc"
 )
 
 func main() {
