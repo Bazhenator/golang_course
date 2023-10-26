@@ -5,17 +5,18 @@ import (
 	"fmt"
 )
 
-type IntHeap []int
+type myHeap []int
 
-func (h IntHeap) Len() int           { return len(h) }
-func (h IntHeap) Less(i, j int) bool { return h[i] < h[j] }
-func (h IntHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+// Declaring heap's interface
+func (h myHeap) Len() int           { return len(h) }
+func (h myHeap) Less(i, j int) bool { return h[i] < h[j] }
+func (h myHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
-func (h *IntHeap) Push(x interface{}) {
+func (h *myHeap) Push(x interface{}) {
 	*h = append(*h, x.(int))
 }
 
-func (h *IntHeap) Pop() interface{} {
+func (h *myHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
@@ -24,9 +25,8 @@ func (h *IntHeap) Pop() interface{} {
 }
 
 func heapSortDescending(arr []int) {
-	h := IntHeap(arr)
+	h := myHeap(arr)
 	heap.Init(&h)
-
 	for i := len(arr) - 1; i >= 0; i-- {
 		arr[i] = heap.Pop(&h).(int)
 	}
