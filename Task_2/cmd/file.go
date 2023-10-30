@@ -50,15 +50,6 @@ func findKthLargest(nums []int, k int) int {
 	return 0
 }
 
-func main() {
-	nums := []int{1, 4, 5, 7, 8, 34, 0, 7}
-	/*arraySortDescending(nums)
-	for i := 0; i <= len(nums)-1; i++ {
-		fmt.Println(nums[i])
-	}*/
-	fmt.Printf("result = %d", findKthLargest(nums, 3))
-}
-
 //Heap works, but here another way (optimised quickSort)
 /* func quickSort(nums []int, first, last, k int) int {
 	if first == last { return nums[first] }
