@@ -24,8 +24,9 @@ func (h *myHeap) Pop() interface{} {
 	return x
 }
 
-func heapSortDescending(arr []int) {
+func arraySortDescending(arr []int) {
 	h := myHeap(arr)
+	//O(n)
 	heap.Init(&h)
 	for i := len(arr) - 1; i >= 0; i-- {
 		arr[i] = heap.Pop(&h).(int)
@@ -34,9 +35,13 @@ func heapSortDescending(arr []int) {
 
 // Example of tested file
 func findKthLargest(nums []int, k int) int {
-	//Checking Heap sort
-	heapSortDescending(nums)
+	//Checking array sorting with heap
+	arraySortDescending(nums)
 	//Cheking if k is out of array's range
+	if len(nums) == 0 {
+		fmt.Println("null array error was occured")
+		return 0
+	}
 	if k <= len(nums) && k >= 0 {
 		return nums[k-1]
 	} else {
@@ -44,3 +49,48 @@ func findKthLargest(nums []int, k int) int {
 	}
 	return 0
 }
+
+func main() {
+	nums := []int{1, 4, 5, 7, 8, 34, 0, 7}
+	/*arraySortDescending(nums)
+	for i := 0; i <= len(nums)-1; i++ {
+		fmt.Println(nums[i])
+	}*/
+	fmt.Printf("result = %d", findKthLargest(nums, 3))
+}
+
+//Heap works, but here another way (optimised quickSort)
+/* func quickSort(nums []int, first, last, k int) int {
+	if first == last { return nums[first] }
+
+	pivotIndex := partition(nums, first, last)
+	rank := pivotIndex - first + 1
+
+	if k == rank {
+		return nums[pivotIndex]
+	} else if k < rank {
+		return quickSort(nums, first, pivotIndex-1, k)
+	} else {
+		return quickSort(nums, pivotIndex+1, last, k-rank)
+	}
+}
+
+func partition(nums []int, first, last int) int {
+	pivot := nums[last]
+	i := first
+
+	for j := first; j < last; j++ {
+		if nums[j] >= pivot {
+			nums[i], nums[j] = nums[j], nums[i]
+			i++
+		}
+	}
+
+	nums[i], nums[last] = nums[last], nums[i]
+	return i
+}
+
+func findKthLargest(nums []int, k int) int {
+	return quickSort(nums, 0, len(nums)-1, k)
+}
+*/
