@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"task_1/Task_1/pkg/myCalc"
+
+	"task_1/pkg/myCalc"
 )
 
 func main() {
