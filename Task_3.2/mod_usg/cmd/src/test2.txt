@@ -1,0 +1,2 @@
+This is a test file 2.
+It contains sub2.
