@@ -1,4 +1,4 @@
-package cmd
+package cmd	
 
 type FileConfig struct {
 	Filename  string `yaml:"filename"`
@@ -8,3 +8,4 @@ type FileConfig struct {
 type Config struct {
 	Files []FileConfig `yaml:"files"`
 }
+
