@@ -18,40 +18,46 @@ func main() {
 		log.Fatalf("File reading error: %v", err)
 	}
 
+	//List of files' configs
 	var config cmd.Config
 
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
 		log.Fatalf("YAML parsing error: %v", err)
 	}
 
-	fmt.Println("Please, enter to search substring: ")
-	reader := bufio.NewReader(os.Stdin)
-	toSearchSubStr, err := reader.ReadString('\n')
-	if err != nil {
-		log.Fatalf("String input error: %v", err)
-	}
-	toSearchSubStr = strings.TrimSpace(toSearchSubStr)
-
-	isFound := false
-	for _, fileConfig := range config.Files {
-		if fileConfig.Filename == os.Args[1] && fileConfig.Substring == toSearchSubStr {
-			isFound = true
-			break
-		}
-	}
-	if !isFound {
-		newFileConfig := cmd.FileConfig{
-			Filename:  os.Args[1],
-			Substring: toSearchSubStr,
-		}
-
-		config.Files = append(config.Files, newFileConfig)
-		configData, err := yaml.Marshal(&config)
+	if len(os.Args) > 1 {
+		fmt.Println("Please, enter to search substring: ")
+		reader := bufio.NewReader(os.Stdin)
+		toSearchSubStr, err := reader.ReadString('\n')
 		if err != nil {
-			log.Fatalf("Error marshaling config: %v\n", err)
+			log.Fatalf("String input error: %v", err)
 		}
-		if err := os.WriteFile("src/config.yaml", configData, 0644); err != nil {
-			log.Fatalf("Error writing config file: %v\n", err)
+		toSearchSubStr = strings.TrimSpace(toSearchSubStr)
+
+		isFound := false
+		for _, fileConfig := range config.Files {
+			if fileConfig.Filename == os.Args[1] && fileConfig.Substring == toSearchSubStr {
+				isFound = true
+				break
+			}
+		}
+		_, err = os.Open(os.Args[1])
+		if !isFound && err == nil {
+			newFileConfig := cmd.FileConfig{
+				Filename:  os.Args[1],
+				Substring: toSearchSubStr,
+			}
+
+			config.Files = append(config.Files, newFileConfig)
+			//configData - byte slice
+			configData, err := yaml.Marshal(&config)
+			if err != nil {
+				log.Fatalf("Error marshaling config: %v\n", err)
+			}
+			//0644 - access rights
+			if err := os.WriteFile("src/config.yaml", configData, 0644); err != nil {
+				log.Fatalf("Error writing config file: %v\n", err)
+			}
 		}
 	}
 
@@ -59,7 +65,7 @@ func main() {
 	for _, fileConfig := range config.Files {
 		isFind, err := a.Search(fileConfig.Filename, fileConfig.Substring)
 		if err != nil {
-			log.Fatalf("Processing file error %s: %v\n", fileConfig.Filename, err)
+			fmt.Printf("Processing file error %s: %v\n", fileConfig.Filename, err)
 		} else if isFind {
 			fmt.Printf("File %s contains substring %s\n", fileConfig.Filename, fileConfig.Substring)
 		} else {

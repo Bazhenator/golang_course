@@ -4,6 +4,4 @@ files:
 - filename: src/test2.txt
   substring: sub2
 - filename: src/test3.txt
-  substring: friends
-- filename: src/test4.txt
-  substring: "false"
+  substring: hello

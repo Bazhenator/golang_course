@@ -9,7 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	calc "task_3.1/pkg"
+	calc "task_3.1/pkg/calculations"
 )
 
 func main() {
