@@ -1,0 +1,1 @@
+Info: this str has been loaded from first.txt
