@@ -1,5 +1,5 @@
 # golang_course
-> artifacts from golang polytech course 
+> artifacts from golang polytech course  
 **Already added labs:**
 1. [*Task 1.* Simple calculator](https://github.com/Bazhenator/golang_course/tree/T1/Task_1)
 2. [*Task 2.* FindKthLargest](https://github.com/Bazhenator/golang_course/tree/T2/Task_2/cmd)
