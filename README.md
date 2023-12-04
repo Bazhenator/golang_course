@@ -7,5 +7,5 @@
 4. [*Task 4.* Building a Go project.](https://github.com/Bazhenator/golang_course/tree/T4/Task_4)
 5. [*Task 5.* Testing functions using mock-objects.](https://github.com/Bazhenator/golang_course/tree/T5/Task_5)
 6. [*Task 6.* Multithreading in Go.](https://github.com/Bazhenator/golang_course/tree/T6/Task_6)
-7. *To be continued...*
+7. [*Task 7.* REST_API in Go.](https://github.com/Bazhenator/golang_course/tree/T7/Task_7)
 > Polytech. HSPI. FIIT. 2023.
