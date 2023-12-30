@@ -26,15 +26,13 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 		tokenHeader := r.Header.Get("Authorization")
 
 		if tokenHeader == "" {
-			response := u.NewError(http.StatusForbidden, 403, "Missing authentication token")
-			u.JSONError(w, response)
+			u.AuthorizationError(w, "missing authentication token.")
 			return
 		}
 
 		splitted := strings.Split(tokenHeader, " ")
 		if len(splitted) != 2 {
-			response := u.NewError(http.StatusForbidden, 403, "Invalid/Malformed authentication token")
-			u.JSONError(w, response)
+			u.AuthorizationError(w, "invalid/malformed authentication token.")
 			return
 		}
 
@@ -46,14 +44,12 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 		})
 
 		if err != nil {
-			response := u.NewError(http.StatusForbidden, 403, "Malformed authentication token")
-			u.JSONError(w, response)
+			u.AuthorizationError(w, "malformed authentication token.")
 			return
 		}
 
 		if !token.Valid {
-			response := u.NewError(http.StatusForbidden, 403, "Token is not valid.")
-			u.JSONError(w, response)
+			u.AuthorizationError(w, "token is not valid.")
 			return
 		}
 

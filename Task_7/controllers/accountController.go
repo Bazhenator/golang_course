@@ -11,11 +11,13 @@ var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
 	account := &models.Account{}
 	err := json.NewDecoder(r.Body).Decode(account)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid request")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 	resp := account.CreateAccount()
+	if err, ok := resp["error"].(u.Error); ok {
+		w.WriteHeader(err.HTTPCode)
+	}
 	u.Respond(w, resp)
 }
 
@@ -23,11 +25,13 @@ var LoginAccount = func(w http.ResponseWriter, r *http.Request) {
 	account := &models.Account{}
 	err := json.NewDecoder(r.Body).Decode(account)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid request")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 	resp := models.LoginAccount(account.Email, account.Password)
+	if err, ok := resp["error"].(u.Error); ok {
+		w.WriteHeader(err.HTTPCode)
+	}
 	u.Respond(w, resp)
 }
 
@@ -37,24 +41,28 @@ var UpdateAccount = func(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(account)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid request")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 
 	if account.ID != userID {
-		resp := u.NewError(http.StatusBadRequest, 400, "You can only update your own account")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 
 	resp := account.UpdateAccount()
+	if err, ok := resp["error"].(u.Error); ok {
+		w.WriteHeader(err.HTTPCode)
+	}
 	u.Respond(w, resp)
 }
 
 var DeleteAccount = func(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("user").(uint)
 	resp := models.DeleteAccount(userID)
+	if err, ok := resp["error"].(u.Error); ok {
+		w.WriteHeader(err.HTTPCode)
+	}
 	u.Respond(w, resp)
 }
 
@@ -63,20 +71,18 @@ var GetUserByID = func(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid request")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 
 	existingUser := models.GetUser(user.ID)
 	if existingUser != nil {
-		resp := u.Message(true, "User exists")
+		resp := u.Message(true, "user is already exists")
 		u.Respond(w, resp)
 		return
 	}
 
-	resp := u.NewError(http.StatusBadRequest, 400, "User does not exist")
-	u.JSONError(w, resp)
+	u.BadRequest(w)
 }
 
 var GetAllUsers = func(w http.ResponseWriter, r *http.Request) {

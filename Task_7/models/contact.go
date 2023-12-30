@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"net/http"
 	u "task_7/utils"
 
 	"github.com/jinzhu/gorm"
@@ -17,15 +18,27 @@ type Contact struct {
 func (contact *Contact) ValidateContact() (map[string]interface{}, bool) {
 
 	if !IsValidName(contact.Name) {
-		return u.Message(false, "Invalid contact name"), false
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "invalid contact name.",
+		}), false
 	}
 
 	if !IsValidPhoneNumber(contact.Phone) {
-		return u.Message(false, "Invalid phone number"), false
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "invalid phone number.",
+		}), false
 	}
 
 	if contact.UserId <= 0 {
-		return u.Message(false, "User not found!"), false
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "user is not found.",
+		}), false
 	}
 
 	return u.Message(true, "success"), true
@@ -37,7 +50,22 @@ func (contact *Contact) CreateContact() map[string]interface{} {
 		return response
 	}
 
-	GetDB().Create(contact)
+	var err error
+	if contact.ID > 0 {
+		existing := &Contact{}
+		err = GetDB().
+			Table("contacts").
+			Where("id = ?", contact.ID).
+			First(existing).
+			Error
+	}
+
+	if (err == nil) && (contact.ID > 0) {
+		contact.ID = contact.ID
+		GetDB().Save(contact)
+	} else {
+		GetDB().Create(contact)
+	}
 
 	resp := u.Message(true, "success")
 	resp["contact"] = contact
@@ -46,7 +74,11 @@ func (contact *Contact) CreateContact() map[string]interface{} {
 
 func (contact *Contact) UpdateContact() map[string]interface{} {
 	if contact.ID == 0 {
-		return u.Message(false, "Contact ID is required for update")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "contact ID is required for update.",
+		})
 	}
 
 	if response, ok := contact.ValidateContact(); !ok {
@@ -55,7 +87,11 @@ func (contact *Contact) UpdateContact() map[string]interface{} {
 
 	existingContact := GetContact(contact.ID)
 	if existingContact == nil {
-		return u.Message(false, "Contact not found")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "contact is not found.",
+		})
 	}
 
 	existingContact.Name = contact.Name
@@ -71,10 +107,15 @@ func (contact *Contact) UpdateContact() map[string]interface{} {
 func DeleteContact(id uint) map[string]interface{} {
 	contact := GetContact(id)
 	if contact == nil {
-		return u.Message(false, "Contact not found")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "contact is not found. deleting is failed",
+		})
 	}
 
-	GetDB().Delete(contact)
+	GetDB().Table("contacts").
+		Delete(&Contact{}, id)
 
 	resp := u.Message(true, "Contact has been deleted successfully")
 	return resp

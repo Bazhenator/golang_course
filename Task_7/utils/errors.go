@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -12,28 +11,39 @@ type Error struct {
 	Message  string `json:"message"`
 }
 
-// JSONError function to handle JSON error response
-func JSONError(w http.ResponseWriter, e Error) {
-	data := struct {
-		Err Error `json:"error"`
-	}{e}
-
-	b, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+func JSONError(e Error) map[string]interface{} {
+	data := map[string]interface{}{
+		"error": e,
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(e.HTTPCode)
-	_, _ = w.Write(b)
+	return data
 }
 
-// NewError creates a new Error instance
-func NewError(httpCode int, code int, message string) Error {
-	return Error{
-		HTTPCode: httpCode,
-		Code:     code,
+func BadRequest(w http.ResponseWriter) {
+	e := Error{
+		HTTPCode: http.StatusBadRequest,
+		Code:     400,
+		Message:  "Invalid request!",
+	}
+	w.WriteHeader(e.HTTPCode)
+	Respond(w, JSONError(e))
+}
+
+func ServerError(w http.ResponseWriter) {
+	e := Error{
+		HTTPCode: http.StatusInternalServerError,
+		Code:     500,
+		Message:  "The server has encountered a situation it does not know how to handle :(",
+	}
+	w.WriteHeader(e.HTTPCode)
+	Respond(w, JSONError(e))
+}
+
+func AuthorizationError(w http.ResponseWriter, message string) {
+	e := Error{
+		HTTPCode: http.StatusForbidden,
+		Code:     403,
 		Message:  message,
 	}
+	w.WriteHeader(e.HTTPCode)
+	Respond(w, JSONError(e))
 }

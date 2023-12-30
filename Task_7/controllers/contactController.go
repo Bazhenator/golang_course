@@ -18,8 +18,7 @@ var CreateContact = func(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(contact)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid request")
-		u.JSONError(w, resp)
+		u.ServerError(w)
 		return
 	}
 
@@ -34,8 +33,7 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(contact)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid request")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 
@@ -47,8 +45,7 @@ var UpdateContact = func(w http.ResponseWriter, r *http.Request) {
 var DeleteContact = func(w http.ResponseWriter, r *http.Request) {
 	contactID, err := strconv.ParseUint(mux.Vars(r)["id"], 10, 64)
 	if err != nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid contact ID")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 
@@ -59,14 +56,12 @@ var DeleteContact = func(w http.ResponseWriter, r *http.Request) {
 var GetContacts = func(w http.ResponseWriter, r *http.Request) {
 	id, ok := r.Context().Value("user").(uint)
 	if !ok {
-		resp := u.NewError(http.StatusBadRequest, 400, "Invalid user ID")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 
 	if models.GetUser(id) == nil {
-		resp := u.NewError(http.StatusBadRequest, 400, "User not found")
-		u.JSONError(w, resp)
+		u.BadRequest(w)
 		return
 	}
 

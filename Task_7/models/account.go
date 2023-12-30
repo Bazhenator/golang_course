@@ -1,9 +1,9 @@
 package models
 
 import (
+	"errors"
+	"net/http"
 	"os"
-	"strings"
-
 	u "task_7/utils"
 
 	"github.com/dgrijalva/jwt-go"
@@ -26,18 +26,38 @@ type Account struct {
 func (account *Account) ValidateAccount() (map[string]interface{}, bool) {
 
 	if !IsValidEmail(account.Email) {
-		return u.Message(false, "Invalid email address"), false
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "email is invalid",
+		}), false
 	}
 
 	if !IsEmailUnique(account.Email) {
-		return u.Message(false, "Email is already in use"), false
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "email is already in use",
+		}), false
 	}
 
 	if !IsValidPassword(account.Password) {
-		return u.Message(false, "Password must be at least 8 characters long and contain at least one digit and one uppercase letter"), false
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message: "password must be at least 8 characters long and contain at least one digit," +
+				"one special symbol and one uppercase letter",
+		}), false
 	}
-
-	return u.Message(false, "Check is passed!"), true
+	err := GetDB().Table("accounts").Where("email = ?", account.Email).First(account).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusInternalServerError,
+			Code:     500,
+			Message:  "connection failed",
+		}), false
+	}
+	return u.Message(false, "check is passed!"), true
 }
 
 func (account *Account) CreateAccount() map[string]interface{} {
@@ -45,21 +65,27 @@ func (account *Account) CreateAccount() map[string]interface{} {
 		return resp
 	}
 
-	//pwd, _ := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
-	//account.Password = string(pwd)
-	stars := strings.Repeat("*", len(account.Password))
-	account.Password = stars
+	pwd, _ := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
+	account.Password = string(pwd)
+	/*stars := strings.Repeat("*", len(account.Password))
+	account.Password = stars*/
 
 	GetDB().Create(account)
 
 	if account.ID <= 0 {
-		return u.Message(false, "Failed to create account, connection error.")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "account hasn't been created due to connection error!",
+		})
 	}
 
 	tk := &Token{UserId: account.ID}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 	tokenStr, _ := token.SignedString([]byte(os.Getenv("token_pass")))
 	account.Token = tokenStr
+
+	account.Password = ""
 
 	GetDB().Model(&account).Update("token", account.Token)
 
@@ -74,15 +100,27 @@ func LoginAccount(email, password string) map[string]interface{} {
 	account := &Account{}
 	err := GetDB().Table("accounts").Where("email = ?", email).First(account).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return u.Message(false, "Email address not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return u.JSONError(u.Error{
+				HTTPCode: http.StatusBadRequest,
+				Code:     400,
+				Message:  "email address is not found",
+			})
 		}
-		return u.Message(false, "Connection error. Please retry")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusInternalServerError,
+			Code:     500,
+			Message:  "connection error! please try again later.",
+		})
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return u.Message(false, "Password does not match!")
+	if err != nil && errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "incorrect password.",
+		})
 	}
 	account.Password = ""
 	tk := &Token{UserId: account.ID}
@@ -97,7 +135,11 @@ func LoginAccount(email, password string) map[string]interface{} {
 
 func (account *Account) UpdateAccount() map[string]interface{} {
 	if account.ID == 0 {
-		return u.Message(false, "Account ID is required for update")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "account id is required for updating.",
+		})
 	}
 
 	if response, ok := account.ValidateAccount(); !ok {
@@ -106,7 +148,11 @@ func (account *Account) UpdateAccount() map[string]interface{} {
 
 	existingAccount := GetUser(account.ID)
 	if existingAccount == nil {
-		return u.Message(false, "Account not found")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "account is not found.",
+		})
 	}
 
 	existingAccount.Email = account.Email
@@ -121,10 +167,14 @@ func (account *Account) UpdateAccount() map[string]interface{} {
 func DeleteAccount(id uint) map[string]interface{} {
 	account := GetUser(id)
 	if account == nil {
-		return u.Message(false, "Account not found")
+		return u.JSONError(u.Error{
+			HTTPCode: http.StatusBadRequest,
+			Code:     400,
+			Message:  "account is not found.",
+		})
 	}
 
-	GetDB().Where("user_id = ?", id).Delete(&Contact{})
+	GetDB().Where("user_id = ?", id).Delete(&Account{})
 
 	GetDB().Delete(account)
 
