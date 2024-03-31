@@ -8,5 +8,5 @@
 5. [*Task 5.* Testing functions using mock-objects.](https://github.com/Bazhenator/golang_course/tree/T5/Task_5)
 6. [*Task 6.* Multithreading in Go.](https://github.com/Bazhenator/golang_course/tree/T6/Task_6)
 7. [*Task 7.* REST_API in Go.](https://github.com/Bazhenator/golang_course/tree/T7/Task_7)
-8. *To be continued...*
+8.  [*Course work.* Jira Analyzer.](https://github.com/Jira-Analyzer/backend-services)
 > Polytech. HSPI. FIIT. 2023.
